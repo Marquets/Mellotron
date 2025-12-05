@@ -1,0 +1,21 @@
+{
+    "name": "Mellotron Micro",
+    "short_name": "Mellotron",
+    "start_url": "./web_emulator_mobile.html",
+    "display": "standalone",
+    "background_color": "#1a1a1a",
+    "theme_color": "#1a1a1a",
+    "orientation": "landscape",
+    "icons": [
+        {
+            "src": "https://via.placeholder.com/192x192.png?text=Mellotron",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://via.placeholder.com/512x512.png?text=Mellotron",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

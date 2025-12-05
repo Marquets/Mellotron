@@ -6,15 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mellotron Mobile</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         body {
-            background-color: #1a1a1a;
+            background-color: #121212;
             color: #eee;
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -26,20 +28,17 @@
             flex-direction: column;
         }
 
-        /* --- Top Bar (Controls) --- */
-        #top-bar {
-            height: 35vh;
-            /* Reduced height to give more space to keys */
-            background: #e6e6e6;
-            border-bottom: 4px solid #ccc;
+        /* --- Top Controls Area --- */
+        #controls-area {
+            height: 40vh;
+            background: #1e1e1e;
             display: flex;
             flex-direction: column;
-            padding: 10px;
-            gap: 10px;
-            overflow-y: auto;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            position: relative;
+            padding: 15px;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             z-index: 10;
+            overflow-y: auto;
         }
 
         .row {
@@ -47,232 +46,227 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
+            gap: 10px;
         }
 
-        .control-group {
+        .card {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 10px;
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            flex: 1;
+            justify-content: center;
         }
 
         .label {
             font-size: 0.6rem;
-            font-weight: 800;
-            color: #444;
-            margin-bottom: 5px;
-            text-align: center;
-            text-transform: uppercase;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 8px;
             letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        /* OLEDs */
-        .oled-container {
-            width: 80px;
-            /* Smaller OLEDs */
-            height: 40px;
-            background-color: #000;
-            border: none;
-            border-radius: 2px;
-            margin-bottom: 5px;
-            position: relative;
-            /* Scanlines effect */
-            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            image-rendering: pixelated;
-        }
-
-        /* Buttons / Encoders */
-        .btn {
-            background: #ddd;
-            border: 1px solid #bbb;
-            color: #444;
-            padding: 8px 12px;
-            border-radius: 50%;
-            /* Round buttons */
-            font-size: 1rem;
-            touch-action: manipulation;
-            font-weight: bold;
-            box-shadow: 0 2px 0 #bbb, 0 3px 5px rgba(0, 0, 0, 0.2);
-            width: 40px;
-            height: 40px;
+        /* Sound Selectors */
+        .sound-selector {
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: #000;
+            border-radius: 8px;
+            padding: 5px;
+            margin-bottom: 5px;
         }
 
-        .btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 0 0 #bbb, inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        .sound-name {
+            font-size: 0.8rem;
+            color: #5cf;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+            text-align: center;
+        }
+
+        .nav-btn {
+            background: #333;
+            border: none;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:active {
+            background: #555;
         }
 
         /* Sliders */
         input[type=range] {
             -webkit-appearance: none;
-            width: 90%;
-            height: 6px;
-            background: #ccc;
-            border-radius: 3px;
-            box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            height: 4px;
+            background: #444;
+            border-radius: 2px;
             outline: none;
+            margin: 10px 0;
         }
 
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 24px;
-            width: 12px;
-            border-radius: 2px;
-            background: #333;
-            margin-top: -9px;
-            box-shadow:
-                0 2px 4px rgba(0, 0, 0, 0.4),
-                inset 1px 1px 1px rgba(255, 255, 255, 0.2);
-            border: 1px solid #111;
-        }
-
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            background: transparent;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #eee;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         /* --- Keyboard Area --- */
         #keyboard-area {
             flex: 1;
-            background: #222;
+            background: #000;
+            position: relative;
             overflow-x: auto;
             overflow-y: hidden;
-            position: relative;
-            display: flex;
-            align-items: flex-start;
-            padding-top: 0;
-            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.5);
+            /* Hide scrollbar */
+            scrollbar-width: none;
+        }
+
+        #keyboard-area::-webkit-scrollbar {
+            display: none;
         }
 
         .keyboard-scroll-container {
             display: flex;
             height: 100%;
-            padding: 0 20px;
+            padding-left: 40px;
+            /* Extra padding for first keys */
+            padding-right: 40px;
             position: relative;
+            align-items: flex-start;
         }
 
-        /* Keys */
+        /* Keys - Minimalist Style */
         .key {
             position: relative;
             float: left;
-            user-select: none;
-            cursor: pointer;
+            border-radius: 0 0 8px 8px;
+            transition: transform 0.05s, background-color 0.1s;
         }
 
         .white-key {
             width: 60px;
-            height: 100%;
-            background: #fdfdfd;
-            border: 1px solid #ccc;
-            border-radius: 0 0 5px 5px;
+            height: 95%;
+            /* Slightly shorter than full height */
+            background: #e0e0e0;
+            margin-right: 2px;
             z-index: 1;
-            box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.1);
         }
 
         .white-key.active {
-            background: #ddd;
+            background: #bbb;
             transform: scale(0.98);
         }
 
         .black-key {
             width: 40px;
             height: 60%;
-            background: #222;
-            border: 1px solid #111;
-            border-radius: 0 0 3px 3px;
-            z-index: 2;
+            background: #333;
             position: absolute;
-            left: -20px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+            border-radius: 0 0 6px 6px;
+            /* Shadow for depth */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         .black-key.active {
-            background: #444;
+            background: #111;
+            transform: translateY(2px);
+        }
+
+        /* Unmute Overlay */
+        #unmute-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+        }
+
+        #unmute-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
         }
     </style>
 </head>
 
 <body>
 
-    <div id="top-bar">
-        <!-- Sound Selection Row -->
-        <div class="row" style="justify-content: space-around;">
-            <div class="control-group">
+    <div id="controls-area">
+        <!-- Sound Selection -->
+        <div class="row">
+            <div class="card">
                 <div class="label">SOUND A</div>
-                <div class="oled-container">
-                    <canvas id="oledCanvasA" width="128" height="64"></canvas>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" onclick="rotateEncoder('A', -1)">◀</button>
-                    <button class="btn" onclick="rotateEncoder('A', 1)">▶</button>
+                <div class="sound-selector">
+                    <button class="nav-btn" onclick="rotateEncoder('A', -1)">‹</button>
+                    <div class="sound-name" id="nameA">Flute</div>
+                    <button class="nav-btn" onclick="rotateEncoder('A', 1)">›</button>
                 </div>
             </div>
-
-            <!-- Unmute Button (Visible only if needed) -->
-            <div id="unmute-btn"
-                style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: #f55; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; z-index: 100; cursor: pointer; display: none;">
-                TAP TO UNMUTE
-            </div>
-
-            <div class="control-group">
+            <div class="card">
                 <div class="label">SOUND B</div>
-                <div class="oled-container">
-                    <canvas id="oledCanvasB" width="128" height="64"></canvas>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" onclick="rotateEncoder('B', -1)">◀</button>
-                    <button class="btn" onclick="rotateEncoder('B', 1)">▶</button>
+                <div class="sound-selector">
+                    <button class="nav-btn" onclick="rotateEncoder('B', -1)">‹</button>
+                    <div class="sound-name" id="nameB">Organ</div>
+                    <button class="nav-btn" onclick="rotateEncoder('B', 1)">›</button>
                 </div>
             </div>
         </div>
 
-        <!-- Knobs Row -->
-        <!-- Knobs Row 1 -->
-        <div class="row" style="margin-top: 10px;">
-            <div class="control-group">
+        <!-- Mix & Vol -->
+        <div class="row">
+            <div class="card">
                 <div class="label">MIX</div>
                 <input type="range" id="mixKnob" min="0" max="100" value="50" oninput="updateParams()">
             </div>
-            <div class="control-group">
+            <div class="card">
                 <div class="label">VOLUME</div>
                 <input type="range" id="volKnob" min="0" max="100" value="80" oninput="updateParams()">
             </div>
         </div>
 
-        <!-- Knobs Row 2 (3 columns) -->
-        <div class="row" style="margin-top: 5px;">
-            <div class="control-group">
-                <div class="label">TONE</div>
-                <input type="range" id="toneKnob" min="0" max="100" value="100" oninput="updateParams()">
-            </div>
-            <div class="control-group">
+        <!-- Effects -->
+        <div class="row">
+            <div class="card">
                 <div class="label">PITCH</div>
                 <input type="range" id="pitchKnob" min="0" max="100" value="50" oninput="updateParams()">
             </div>
-            <div class="control-group">
+            <div class="card">
+                <div class="label">TONE</div>
+                <input type="range" id="toneKnob" min="0" max="100" value="100" oninput="updateParams()">
+            </div>
+            <div class="card">
                 <div class="label">REVERB</div>
                 <input type="range" id="reverbKnob" min="0" max="100" value="0" oninput="updateParams()">
-            </div>
-        </div>
-
-        <div class="row" style="margin-top: 10px; justify-content: center;">
-            <div class="control-group">
-                <div class="label">OCTAVE: <span id="octaveDisplay" style="color:#5cf">C3</span></div>
-                <div style="display: flex; gap: 20px;">
-                    <button class="btn" onclick="changeOctave(-1)">-</button>
-                    <button class="btn" onclick="changeOctave(1)">+</button>
-                </div>
             </div>
         </div>
     </div>
@@ -281,14 +275,18 @@
         <div class="keyboard-scroll-container" id="keyboardContainer">
             <!-- Keys generated by JS -->
         </div>
+
+        <div id="unmute-overlay" style="display: none;">
+            <button id="unmute-btn">TAP TO ENABLE AUDIO</button>
+        </div>
     </div>
 
     <div id="loading"
-        style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#000; padding:10px; border-radius:5px; z-index:100;">
+        style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:10px 20px; border-radius:20px; font-size:0.8rem; z-index:200;">
         Loading...</div>
 
     <script>
-        // --- Audio Engine (Same as Desktop) ---
+        // --- Audio Engine ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const actx = new AudioContext();
 
@@ -300,7 +298,7 @@
         const reverbDryGain = actx.createGain();
         const reverbWetGain = actx.createGain();
 
-        // Reverb Impulse
+        // Impulse Response
         const rate = actx.sampleRate;
         const length = rate * 2.0;
         const impulse = actx.createBuffer(2, length, rate);
@@ -337,7 +335,6 @@
         let sampleBuffers = {};
         let isLoading = false;
 
-        // Note Helper
         function noteNameToMidi(name) {
             const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
             const regex = /([A-G]#?)(\d)/;
@@ -371,7 +368,6 @@
                 if (midiNote === -1) return;
                 try {
                     const safeFile = file.replace("#", "%23");
-                    // Encode instrument name to handle spaces safely
                     const safeInst = encodeURIComponent(instName);
                     const response = await fetch(`Samples/${safeInst}/${safeFile}`);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -435,9 +431,6 @@
         }
 
         // --- UI Logic ---
-        const ctxA = document.getElementById('oledCanvasA').getContext('2d');
-        const ctxB = document.getElementById('oledCanvasB').getContext('2d');
-
         function updateParams() {
             state.mix = parseInt(document.getElementById('mixKnob').value) / 100;
             state.vol = parseInt(document.getElementById('volKnob').value) / 100;
@@ -454,10 +447,7 @@
             reverbDryGain.gain.setTargetAtTime(1.0 - rVal * 0.5, actx.currentTime, 0.1);
             reverbWetGain.gain.setTargetAtTime(rVal, actx.currentTime, 0.1);
 
-            // Apply Volume
             masterGain.gain.setTargetAtTime(state.vol, actx.currentTime, 0.1);
-
-            drawOLEDs();
         }
 
         function rotateEncoder(side, dir) {
@@ -465,140 +455,66 @@
                 state.idxA += dir;
                 if (state.idxA < 0) state.idxA = instruments.length - 1;
                 if (state.idxA >= instruments.length) state.idxA = 0;
+                document.getElementById('nameA').innerText = instruments[state.idxA];
                 loadInstrument(instruments[state.idxA]);
             } else {
                 state.idxB += dir;
                 if (state.idxB < 0) state.idxB = instruments.length - 1;
                 if (state.idxB >= instruments.length) state.idxB = 0;
+                document.getElementById('nameB').innerText = instruments[state.idxB];
                 loadInstrument(instruments[state.idxB]);
             }
-            drawOLEDs();
         }
 
-        function changeOctave(dir) {
-            state.octave = Math.max(1, Math.min(6, state.octave + dir));
-            document.getElementById('octaveDisplay').innerText = `C${state.octave}`;
-        }
-
-        // Draw OLEDs (Same as Desktop)
-        function drawText(ctx, text, x, y, size) {
-            ctx.font = size === 'small' ? '8px monospace' : '10px monospace';
-            ctx.fillStyle = '#5cf';
-            ctx.fillText(text, x, y + 8);
-        }
-        function drawRect(ctx, x, y, w, h, fill) {
-            ctx.strokeStyle = '#5cf';
-            ctx.fillStyle = '#5cf';
-            if (fill) ctx.fillRect(x, y, w, h); else ctx.strokeRect(x + 0.5, y + 0.5, w, h);
-        }
-        function drawOLEDs() {
-            [
-                { ctx: ctxA, idx: state.idxA, mix: 1.0 - state.mix, title: "Sound A" },
-                { ctx: ctxB, idx: state.idxB, mix: state.mix, title: "Sound B" }
-            ].forEach(d => {
-                d.ctx.fillStyle = '#000'; d.ctx.fillRect(0, 0, 128, 64);
-                const inst = instruments[d.idx];
-                const mixPct = Math.round(d.mix * 100);
-                const titleW = 7 * 7;
-                drawText(d.ctx, d.title, ((128 - titleW) / 2) + 10, 5, 'small');
-                const instW = inst.length * 11;
-                drawText(d.ctx, inst, Math.max(0, (128 - instW) / 2) + 10, 25, 'large');
-                drawText(d.ctx, "Mix", 10, 52, 'small');
-                const barW = 50;
-                const fillW = (barW * mixPct) / 100;
-                drawRect(d.ctx, 35, 54, barW, 6, false);
-                if (fillW > 0) drawRect(d.ctx, 35, 54, fillW, 6, true);
-                drawText(d.ctx, `${mixPct}%`, 90, 52, 'small');
-            });
-        }
-
-        // --- Mobile Keyboard Generation ---
+        // --- Keyboard Generation ---
         const keyboardContainer = document.getElementById('keyboardContainer');
-
-        // Generate 3 Octaves of keys for scrolling
-        // C2 to C5
         const startOctave = 2;
         const numOctaves = 3;
 
         for (let o = 0; o < numOctaves; o++) {
             const oct = startOctave + o;
-            // 7 white keys per octave: C D E F G A B
             const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
             notes.forEach((note, i) => {
                 const whiteKey = document.createElement('div');
                 whiteKey.className = 'key white-key';
-                whiteKey.dataset.note = `${note}${oct}`;
 
-                // Calculate MIDI note for this specific key
-                // Note indices: C=0, D=2, E=4, F=5, G=7, A=9, B=11
                 const baseOffsets = [0, 2, 4, 5, 7, 9, 11];
                 const midi = (oct + 1) * 12 + baseOffsets[i];
-                whiteKey.dataset.midi = midi;
 
                 attachTouchEvents(whiteKey, midi);
                 keyboardContainer.appendChild(whiteKey);
 
-                // Add Black Key if not E or B
                 if (note !== 'E' && note !== 'B') {
                     const blackKey = document.createElement('div');
                     blackKey.className = 'key black-key';
-                    // Position relative to the white key we just added
-                    // We need to append it to the container, but position it absolutely relative to the flow?
-                    // Actually, standard HTML flow for piano keys is tricky.
-                    // Let's use a wrapper for each white key? No, black keys overlap.
-                    // Easier: Append black key AFTER white key, but use negative margin or absolute positioning.
-                    // My CSS uses float left for keys.
-                    // Let's try: Place black key inside the white key? No.
-                    // Let's place it after, and shift it back.
-
-                    // Actually, let's just use a simple list and position black keys absolutely within a relative container
-                    // But for scrolling, a flex row is easier.
-                    // Let's use the container as relative.
-                    // White keys flow. Black keys are absolute.
-                    // We need to calculate left position.
-                    // 60px per white key.
-                    // Black key is between white keys.
-                    // C# is between C and D.
-                    // 1st black key (C#) is at 60px - 20px = 40px?
-
-                    // Let's do this:
-                    // We have a container. We append white keys.
-                    // We calculate where black keys go.
-
-                    const blackNoteMap = { 'C': 'C#', 'D': 'D#', 'F': 'F#', 'G': 'G#', 'A': 'A#' };
-                    const blackNote = blackNoteMap[note];
                     const blackMidi = midi + 1;
 
-                    blackKey.dataset.note = `${blackNote}${oct}`;
-                    blackKey.dataset.midi = blackMidi;
-
-                    // Calculate position:
-                    // i is the index of white key in this octave (0..6)
-                    // Global index of white key = (o * 7) + i
+                    // Calculate position
                     const whiteIndex = (o * 7) + i;
-                    const leftPos = (whiteIndex + 1) * 60 - 20; // Right edge of current white key - half black width
+                    // 60px width + 2px margin = 62px per white key step
+                    const leftPos = (whiteIndex + 1) * 62 - 20 + 40; // +40 for container padding
 
                     blackKey.style.left = `${leftPos}px`;
-
                     attachTouchEvents(blackKey, blackMidi);
-                    // We need to append to the main container, which must be relative
                     keyboardContainer.appendChild(blackKey);
                 }
             });
         }
 
-        // Set container width to fit all keys
-        // 3 octaves * 7 white keys * 60px
-        keyboardContainer.style.minWidth = `${numOctaves * 7 * 60}px`;
+        // Width: 21 white keys * 62px + padding
+        keyboardContainer.style.minWidth = `${(numOctaves * 7 * 62) + 80}px`;
 
         function attachTouchEvents(el, midiNote) {
             const start = (e) => {
-                e.preventDefault();
+                // e.preventDefault(); // Don't block scroll completely?
+                // Only prevent default if it's not scrolling?
+                // For keys, we usually want to prevent default to avoid scrolling while playing
+                if (e.cancelable) e.preventDefault();
                 el.classList.add('active');
                 playNote(midiNote);
             };
             const end = (e) => {
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 el.classList.remove('active');
                 stopNote(midiNote);
             };
@@ -616,35 +532,37 @@
         (async () => {
             const startA = instruments[state.idxA];
             const startB = instruments[state.idxB];
+            document.getElementById('nameA').innerText = startA;
+            document.getElementById('nameB').innerText = startB;
+
             await Promise.all([loadInstrument(startA), loadInstrument(startB)]);
             updateParams();
 
-            // Audio Unlock Logic
-            const unmuteBtn = document.getElementById('unmute-btn');
+            // Audio Unlock
+            const overlay = document.getElementById('unmute-overlay');
+            const btn = document.getElementById('unmute-btn');
 
-            const checkAudio = async () => {
+            const checkAudio = () => {
                 if (actx.state === 'suspended') {
-                    unmuteBtn.style.display = 'block';
+                    overlay.style.display = 'flex';
                 } else {
-                    unmuteBtn.style.display = 'none';
+                    overlay.style.display = 'none';
                 }
             };
 
-            const unlockAudio = async () => {
-                if (actx.state === 'suspended') {
-                    await actx.resume();
-                }
+            const unlock = async () => {
+                await actx.resume();
                 checkAudio();
             };
 
-            unmuteBtn.addEventListener('click', unlockAudio);
-            unmuteBtn.addEventListener('touchstart', unlockAudio);
+            btn.addEventListener('click', unlock);
+            btn.addEventListener('touchstart', unlock);
 
-            // Try to unlock on any interaction
-            document.body.addEventListener('touchstart', unlockAudio, { once: true });
-            document.body.addEventListener('click', unlockAudio, { once: true });
+            document.body.addEventListener('touchstart', async () => {
+                if (actx.state === 'suspended') await actx.resume();
+                checkAudio();
+            }, { once: true });
 
-            // Check initially
             checkAudio();
         })();
 
