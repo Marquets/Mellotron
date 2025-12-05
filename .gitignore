@@ -1,0 +1,35 @@
+# Ignore build artifacts
+*.o
+*.d
+*.elf
+*.bin
+*.map
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore temporary files
+*.tmp
+*.bak
+temp_*
+__TEMP__*
+
+# Keep samples but ignore very large files (>100MB)
+# If you need to exclude specific large samples, add them here
+# samples/SomeLargeInstrument/
+
+# Ignore local server logs
+*.log
