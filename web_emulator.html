@@ -229,19 +229,19 @@
         <div class="controls-row">
             <!-- Sound Selectors -->
             <div class="control-group">
-                <div class="label">SELECT A</div>
+                <div class="label">SOUND A</div>
                 <div class="encoder-row">
                     <button class="encoder-btn" onclick="rotateEncoder('A', -1)">◀</button>
-                    <span id="labelA">Flute</span>
+                    <span style="font-size: 0.8rem; color: #888;">SELECT</span>
                     <button class="encoder-btn" onclick="rotateEncoder('A', 1)">▶</button>
                 </div>
             </div>
 
             <div class="control-group">
-                <div class="label">SELECT B</div>
+                <div class="label">SOUND B</div>
                 <div class="encoder-row">
                     <button class="encoder-btn" onclick="rotateEncoder('B', -1)">◀</button>
-                    <span id="labelB">Violins</span>
+                    <span style="font-size: 0.8rem; color: #888;">SELECT</span>
                     <button class="encoder-btn" onclick="rotateEncoder('B', 1)">▶</button>
                 </div>
             </div>
@@ -524,7 +524,7 @@
                 if (state.idxA >= instruments.length) state.idxA = 0;
 
                 const instName = instruments[state.idxA];
-                document.getElementById('labelA').innerText = instName;
+                // document.getElementById('labelA').innerText = instName;
                 loadInstrument(instName); // Lazy load
             } else {
                 state.idxB += dir;
@@ -532,7 +532,7 @@
                 if (state.idxB >= instruments.length) state.idxB = 0;
 
                 const instName = instruments[state.idxB];
-                document.getElementById('labelB').innerText = instName;
+                // document.getElementById('labelB').innerText = instName;
                 loadInstrument(instName); // Lazy load
             }
             drawOLEDs();
@@ -792,8 +792,8 @@
         (async () => {
             const startA = instruments[state.idxA];
             const startB = instruments[state.idxB];
-            document.getElementById('labelA').innerText = startA;
-            document.getElementById('labelB').innerText = startB;
+            // document.getElementById('labelA').innerText = startA;
+            // document.getElementById('labelB').innerText = startB;
             await Promise.all([loadInstrument(startA), loadInstrument(startB)]);
             updateParams();
             updateOctaveDisplay();
