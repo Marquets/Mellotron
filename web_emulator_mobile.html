@@ -238,20 +238,27 @@
         </div>
 
         <!-- Knobs Row -->
-        <div class="row" style="margin-top: 15px;">
+        <!-- Knobs Row 1 -->
+        <div class="row" style="margin-top: 10px;">
             <div class="control-group">
                 <div class="label">MIX</div>
                 <input type="range" id="mixKnob" min="0" max="100" value="50" oninput="updateParams()">
             </div>
             <div class="control-group">
-                <div class="label">PITCH</div>
-                <input type="range" id="pitchKnob" min="0" max="100" value="50" oninput="updateParams()">
+                <div class="label">VOLUME</div>
+                <input type="range" id="volKnob" min="0" max="100" value="80" oninput="updateParams()">
             </div>
         </div>
-        <div class="row">
+
+        <!-- Knobs Row 2 (3 columns) -->
+        <div class="row" style="margin-top: 5px;">
             <div class="control-group">
                 <div class="label">TONE</div>
                 <input type="range" id="toneKnob" min="0" max="100" value="100" oninput="updateParams()">
+            </div>
+            <div class="control-group">
+                <div class="label">PITCH</div>
+                <input type="range" id="pitchKnob" min="0" max="100" value="50" oninput="updateParams()">
             </div>
             <div class="control-group">
                 <div class="label">REVERB</div>
@@ -364,7 +371,9 @@
                 if (midiNote === -1) return;
                 try {
                     const safeFile = file.replace("#", "%23");
-                    const response = await fetch(`Samples/${instName}/${safeFile}`);
+                    // Encode instrument name to handle spaces safely
+                    const safeInst = encodeURIComponent(instName);
+                    const response = await fetch(`Samples/${safeInst}/${safeFile}`);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const arrayBuffer = await response.arrayBuffer();
                     const audioBuffer = await actx.decodeAudioData(arrayBuffer);
@@ -431,15 +440,23 @@
 
         function updateParams() {
             state.mix = parseInt(document.getElementById('mixKnob').value) / 100;
+            state.vol = parseInt(document.getElementById('volKnob').value) / 100;
+
             const pVal = parseInt(document.getElementById('pitchKnob').value);
             state.pitch = Math.pow(2, (pVal - 50) / 33.3);
+
             const tVal = parseInt(document.getElementById('toneKnob').value) / 100;
             const cutoff = 200 * Math.pow(12000 / 200, tVal);
             toneFilter.frequency.setTargetAtTime(cutoff, actx.currentTime, 0.1);
+
             const rVal = parseInt(document.getElementById('reverbKnob').value) / 100;
             state.reverb = rVal;
             reverbDryGain.gain.setTargetAtTime(1.0 - rVal * 0.5, actx.currentTime, 0.1);
             reverbWetGain.gain.setTargetAtTime(rVal, actx.currentTime, 0.1);
+
+            // Apply Volume
+            masterGain.gain.setTargetAtTime(state.vol, actx.currentTime, 0.1);
+
             drawOLEDs();
         }
 
