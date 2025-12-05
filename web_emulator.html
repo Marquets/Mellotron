@@ -291,6 +291,43 @@
             height: 0;
             visibility: hidden;
         }
+
+        /* MIDI Dropdown */
+        .midi-dropdown {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+        }
+
+        .midi-dropdown summary {
+            cursor: pointer;
+            list-style: none;
+            padding: 5px;
+            border-radius: 4px;
+            transition: color 0.2s;
+            user-select: none;
+        }
+
+        .midi-dropdown summary:hover {
+            color: #888;
+        }
+
+        .midi-dropdown summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .midi-content {
+            background: #222;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            border: 1px solid #333;
+            color: #aaa;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 
@@ -386,10 +423,14 @@
         </div>
 
         <!-- MIDI Status -->
-        <div id="midiStatus"
-            style="margin-top: 15px; padding: 10px; background: #222; border-radius: 5px; font-size: 0.9rem;">
-            <span style="color: #888;">MIDI: </span><span id="midiStatusText" style="color: #f66;">Not Connected</span>
-        </div>
+        <!-- MIDI Status Dropdown -->
+        <details class="midi-dropdown">
+            <summary id="midiSummary">MIDI Settings ▼</summary>
+            <div class="midi-content">
+                <div style="margin-bottom: 5px; font-weight: bold; color: #ccc;">Connected Devices:</div>
+                <div id="midiStatusText" style="color: #f66;">Not Connected</div>
+            </div>
+        </details>
     </div>
 
     <div id="loading">Loading samples...</div>
@@ -857,12 +898,16 @@
             const statusText = document.getElementById('midiStatusText');
 
             if (inputs.length === 0) {
-                statusText.innerText = 'No Devices';
+                statusText.innerText = 'No Devices Found';
                 statusText.style.color = '#f90';
+                document.getElementById('midiSummary').innerText = 'MIDI: Off ▼';
+                document.getElementById('midiSummary').style.color = '#666';
             } else {
                 const deviceNames = inputs.map(i => i.name).join(', ');
-                statusText.innerText = `✓ ${deviceNames}`;
+                statusText.innerText = deviceNames;
                 statusText.style.color = '#5f5';
+                document.getElementById('midiSummary').innerText = `MIDI: ${inputs.length} Device(s) ▼`;
+                document.getElementById('midiSummary').style.color = '#5f5';
             }
         }
 
