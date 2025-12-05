@@ -5,199 +5,266 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mellotron Micro Web Emulator</title>
-    <style>
-        body {
-            background-color: #222;
-            color: #eee;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
-        h1 {
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-        }
+    body {
+    background-color: #1a1a1a;
+    color: #eee;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px 20px;
+    }
 
-        /* --- Hardware Layout --- */
-        .hardware-case {
-            background-color: #333;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            border: 1px solid #444;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-        }
+    h1 {
+    font-weight: 200;
+    letter-spacing: 2px;
+    margin-bottom: 40px;
+    color: #888;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    }
 
-        /* --- Screens --- */
-        .screens-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+    /* --- Hardware Layout --- */
+    .hardware-case {
+    background-color: #e6e6e6; /* Off-white chassis */
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow:
+    0 50px 100px rgba(0,0,0,0.5),
+    inset 0 2px 5px rgba(255,255,255,0.8),
+    inset 0 -2px 5px rgba(0,0,0,0.1);
+    border: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+    position: relative;
+    width: 700px;
+    max-width: 100%;
+    }
 
-        .oled-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    /* Screw holes aesthetics */
+    .screw {
+    width: 12px;
+    height: 12px;
+    background: #ccc;
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3), 1px 1px 0 rgba(255,255,255,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    }
+    .screw::after {
+    content: '';
+    width: 8px;
+    height: 2px;
+    background: #999;
+    transform: rotate(45deg);
+    }
+    .screw.tl { top: 15px; left: 15px; }
+    .screw.tr { top: 15px; right: 15px; transform: rotate(20deg); }
+    .screw.bl { bottom: 15px; left: 15px; transform: rotate(90deg); }
+    .screw.br { bottom: 15px; right: 15px; transform: rotate(-45deg); }
 
-        .oled-container {
-            width: 256px;
-            /* 128 * 2 */
-            height: 128px;
-            /* 64 * 2 */
-            background-color: #000;
-            border: 4px solid #555;
-            border-radius: 4px;
-            position: relative;
-            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
-        }
+    /* --- Screens --- */
+    .screens-row {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 10px;
+    background: #222;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    border: 1px solid #444;
+    }
 
-        .label {
-            font-size: 0.8rem;
-            color: #aaa;
-            margin-bottom: 5px;
-        }
+    .oled-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    }
 
-        /* --- Controls --- */
-        .controls-row {
-            display: flex;
-            gap: 40px;
-            justify-content: center;
-            align-items: flex-start;
-        }
+    .oled-container {
+    width: 128px;
+    height: 64px;
+    background-color: #000;
+    border: none;
+    position: relative;
+    /* Scanlines effect */
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg,
+    rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+    }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
+    .label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #444; /* Dark serigraphy */
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    }
 
-        /* Knobs (Simulated with Range for now) */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100px;
-            background: transparent;
-        }
+    .screens-row .label {
+    color: #888; /* Lighter label inside the dark screen area */
+    }
 
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            background: #eee;
-            cursor: pointer;
-            margin-top: -8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-        }
+    /* --- Controls --- */
+    .controls-row {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: flex-end;
+    width: 100%;
+    }
 
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            background: #555;
-            border-radius: 2px;
-        }
+    .control-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    }
 
-        /* Encoders */
-        .encoder-btn {
-            background: #444;
-            border: 2px solid #666;
-            color: white;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            user-select: none;
-        }
+    /* Custom Sliders to look more like hardware faders/knobs */
+    input[type=range] {
+    -webkit-appearance: none;
+    width: 100px; /* Vertical orientation via transform? No, keep horizontal for ease */
+    height: 6px;
+    background: #ccc;
+    border-radius: 3px;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
+    outline: none;
+    }
 
-        .encoder-btn:active {
-            background: #666;
-        }
+    input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 24px;
+    width: 12px;
+    border-radius: 2px;
+    background: #333;
+    cursor: pointer;
+    margin-top: -9px;
+    box-shadow:
+    0 2px 4px rgba(0,0,0,0.4),
+    inset 1px 1px 1px rgba(255,255,255,0.2);
+    border: 1px solid #111;
+    }
 
-        .encoder-row {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
+    /* Encoders Buttons */
+    .encoder-btn {
+    background: #ddd;
+    border: 1px solid #bbb;
+    color: #444;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    box-shadow: 0 2px 0 #bbb, 0 3px 5px rgba(0,0,0,0.2);
+    transition: transform 0.05s, box-shadow 0.05s;
+    }
 
-        /* Keyboard */
-        .keyboard-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
+    .encoder-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 #bbb, inset 0 1px 2px rgba(0,0,0,0.2);
+    }
 
-        .octave-display {
-            font-family: monospace;
-            color: #5cf;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
+    .encoder-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #dcdcdc;
+    padding: 5px 10px;
+    border-radius: 20px;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+    }
 
-        .keyboard-container {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-        }
+    /* Keyboard */
+    .keyboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+    width: 100%;
+    }
 
-        .keys-row {
-            display: flex;
-            gap: 5px;
-        }
+    .octave-display {
+    font-family: 'Inter', monospace;
+    color: #444;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: #ddd;
+    padding: 2px 8px;
+    border-radius: 4px;
+    }
 
-        .key {
-            width: 40px;
-            height: 60px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: monospace;
-            font-size: 0.8rem;
-            font-weight: bold;
-            user-select: none;
-            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
-            transition: transform 0.05s, box-shadow 0.05s;
-        }
+    .keyboard-container {
+    background: #222;
+    padding: 20px;
+    border-radius: 0 0 10px 10px; /* Integrated look? Or separate */
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    border-top: 4px solid #111;
+    }
 
-        .key:active,
-        .key.active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 rgba(0, 0, 0, 0.5);
-        }
+    .keys-row {
+    display: flex;
+    gap: 6px;
+    }
 
-        .key.white {
-            background: #eee;
-            color: #333;
-            height: 60px;
-        }
+    .key {
+    width: 40px;
+    height: 60px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: monospace;
+    font-size: 0.8rem;
+    font-weight: bold;
+    user-select: none;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.05s, box-shadow 0.05s;
+    }
 
-        .key.black {
-            background: #333;
-            color: #eee;
-            height: 50px;
-            border: 1px solid #555;
-        }
+    .key:active,
+    .key.active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    }
 
-        .spacer {
-            width: 40px;
-            height: 0;
-            visibility: hidden;
-        }
+    .key.white {
+    background: #fdfdfd;
+    color: #333;
+    height: 60px;
+    }
+
+    .key.black {
+    background: #222;
+    color: #eee;
+    height: 50px;
+    border: 1px solid #444;
+    }
+
+    .spacer {
+    width: 40px;
+    height: 0;
+    visibility: hidden;
+    }
     </style>
 </head>
 
@@ -206,6 +273,11 @@
     <h1>Mellotron Micro Emulator</h1>
 
     <div class="hardware-case">
+        <!-- Decorative Screws -->
+        <div class="screw tl"></div>
+        <div class="screw tr"></div>
+        <div class="screw bl"></div>
+        <div class="screw br"></div>
 
         <!-- Screens -->
         <div class="screens-row">
