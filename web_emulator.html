@@ -403,7 +403,7 @@
                 try {
                     // Fix: Escape '#' in filenames as it's a URL fragment identifier
                     const safeFile = file.replace("#", "%23");
-                    const response = await fetch(`samples/${instName}/${safeFile}`);
+                    const response = await fetch(`Samples/${instName}/${safeFile}`);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const arrayBuffer = await response.arrayBuffer();
                     const audioBuffer = await actx.decodeAudioData(arrayBuffer);
