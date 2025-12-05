@@ -28,15 +28,14 @@
 
         /* --- Top Bar (Controls) --- */
         #top-bar {
-            height: 50vh;
-            /* Slightly taller for better spacing */
+            height: 35vh;
+            /* Reduced height to give more space to keys */
             background: #e6e6e6;
-            /* Off-white chassis */
             border-bottom: 4px solid #ccc;
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            gap: 15px;
+            padding: 10px;
+            gap: 10px;
             overflow-y: auto;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -69,9 +68,9 @@
 
         /* OLEDs */
         .oled-container {
-            width: 100px;
-            /* Slightly smaller for mobile */
-            height: 50px;
+            width: 80px;
+            /* Smaller OLEDs */
+            height: 40px;
             background-color: #000;
             border: none;
             border-radius: 2px;
@@ -219,6 +218,13 @@
                     <button class="btn" onclick="rotateEncoder('A', 1)">▶</button>
                 </div>
             </div>
+
+            <!-- Unmute Button (Visible only if needed) -->
+            <div id="unmute-btn"
+                style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: #f55; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; z-index: 100; cursor: pointer; display: none;">
+                TAP TO UNMUTE
+            </div>
+
             <div class="control-group">
                 <div class="label">SOUND B</div>
                 <div class="oled-container">
@@ -596,13 +602,33 @@
             await Promise.all([loadInstrument(startA), loadInstrument(startB)]);
             updateParams();
 
-            // Auto-resume context on first interaction if needed
-            document.body.addEventListener('touchstart', async () => {
-                if (actx.state === 'suspended') await actx.resume();
-            }, { once: true });
-            document.body.addEventListener('click', async () => {
-                if (actx.state === 'suspended') await actx.resume();
-            }, { once: true });
+            // Audio Unlock Logic
+            const unmuteBtn = document.getElementById('unmute-btn');
+
+            const checkAudio = async () => {
+                if (actx.state === 'suspended') {
+                    unmuteBtn.style.display = 'block';
+                } else {
+                    unmuteBtn.style.display = 'none';
+                }
+            };
+
+            const unlockAudio = async () => {
+                if (actx.state === 'suspended') {
+                    await actx.resume();
+                }
+                checkAudio();
+            };
+
+            unmuteBtn.addEventListener('click', unlockAudio);
+            unmuteBtn.addEventListener('touchstart', unlockAudio);
+
+            // Try to unlock on any interaction
+            document.body.addEventListener('touchstart', unlockAudio, { once: true });
+            document.body.addEventListener('click', unlockAudio, { once: true });
+
+            // Check initially
+            checkAudio();
         })();
 
     </script>
