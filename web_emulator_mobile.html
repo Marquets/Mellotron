@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mellotron Mobile</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #111;
+            color: #eee;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Top Bar (Controls) --- */
+        #top-bar {
+            height: 45vh;
+            background: #222;
+            border-bottom: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .label {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        /* OLEDs */
+        .oled-container {
+            width: 128px;
+            height: 64px;
+            background-color: #000;
+            border: 2px solid #555;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        /* Buttons */
+        .btn {
+            background: #444;
+            border: 1px solid #666;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 1rem;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            background: #666;
+        }
+
+        /* Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 90%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #5cf;
+            margin-top: -7px;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #555;
+            border-radius: 2px;
+        }
+
+        /* --- Keyboard Area --- */
+        #keyboard-area {
+            flex: 1;
+            background: #1a1a1a;
+            overflow-x: auto;
+            overflow-y: hidden;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            /* Align to top of area */
+            padding-top: 0;
+        }
+
+        .keyboard-scroll-container {
+            display: flex;
+            height: 100%;
+            padding: 0 20px;
+            /* Padding on sides */
+            position: relative;
+        }
+
+        /* Keys */
+        .key {
+            position: relative;
+            float: left;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .white-key {
+            width: 60px;
+            height: 100%;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 0 0 5px 5px;
+            z-index: 1;
+            box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .white-key.active {
+            background: #ccc;
+            transform: scale(0.98);
+        }
+
+        .black-key {
+            width: 40px;
+            height: 60%;
+            background: #222;
+            border: 1px solid #000;
+            border-radius: 0 0 3px 3px;
+            z-index: 2;
+            position: absolute;
+            left: -20px;
+            /* Half width to overlap */
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .black-key.active {
+            background: #444;
+        }
+
+        /* Start Overlay */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #start-btn {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            background: #5cf;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="start-overlay">
+        <button id="start-btn">TAP TO START</button>
+        <div style="color: #aaa;">Mobile Version</div>
+    </div>
+
+    <div id="top-bar">
+        <!-- Sound Selection Row -->
+        <div class="row" style="justify-content: space-around;">
+            <div class="control-group">
+                <div class="label">SOUND A</div>
+                <div class="oled-container">
+                    <canvas id="oledCanvasA" width="128" height="64"></canvas>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="rotateEncoder('A', -1)">◀</button>
+                    <button class="btn" onclick="rotateEncoder('A', 1)">▶</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="label">SOUND B</div>
+                <div class="oled-container">
+                    <canvas id="oledCanvasB" width="128" height="64"></canvas>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="rotateEncoder('B', -1)">◀</button>
+                    <button class="btn" onclick="rotateEncoder('B', 1)">▶</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knobs Row -->
+        <div class="row" style="margin-top: 15px;">
+            <div class="control-group">
+                <div class="label">MIX</div>
+                <input type="range" id="mixKnob" min="0" max="100" value="50" oninput="updateParams()">
+            </div>
+            <div class="control-group">
+                <div class="label">PITCH</div>
+                <input type="range" id="pitchKnob" min="0" max="100" value="50" oninput="updateParams()">
+            </div>
+        </div>
+        <div class="row">
+            <div class="control-group">
+                <div class="label">TONE</div>
+                <input type="range" id="toneKnob" min="0" max="100" value="100" oninput="updateParams()">
+            </div>
+            <div class="control-group">
+                <div class="label">REVERB</div>
+                <input type="range" id="reverbKnob" min="0" max="100" value="0" oninput="updateParams()">
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px; justify-content: center;">
+            <div class="control-group">
+                <div class="label">OCTAVE: <span id="octaveDisplay" style="color:#5cf">C3</span></div>
+                <div style="display: flex; gap: 20px;">
+                    <button class="btn" onclick="changeOctave(-1)">-</button>
+                    <button class="btn" onclick="changeOctave(1)">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="keyboard-area">
+        <div class="keyboard-scroll-container" id="keyboardContainer">
+            <!-- Keys generated by JS -->
+        </div>
+    </div>
+
+    <div id="loading"
+        style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#000; padding:10px; border-radius:5px; z-index:100;">
+        Loading...</div>
+
+    <script>
+        // --- Audio Engine (Same as Desktop) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const actx = new AudioContext();
+
+        const masterGain = actx.createGain();
+        const toneFilter = actx.createBiquadFilter();
+        toneFilter.type = "lowpass";
+
+        const convolver = actx.createConvolver();
+        const reverbDryGain = actx.createGain();
+        const reverbWetGain = actx.createGain();
+
+        // Reverb Impulse
+        const rate = actx.sampleRate;
+        const length = rate * 2.0;
+        const impulse = actx.createBuffer(2, length, rate);
+        const left = impulse.getChannelData(0);
+        const right = impulse.getChannelData(1);
+        for (let i = 0; i < length; i++) {
+            const decay = Math.pow(1 - i / length, 2);
+            left[i] = (Math.random() * 2 - 1) * decay;
+            right[i] = (Math.random() * 2 - 1) * decay;
+        }
+        convolver.buffer = impulse;
+
+        masterGain.connect(toneFilter);
+        toneFilter.connect(reverbDryGain);
+        toneFilter.connect(convolver);
+        convolver.connect(reverbWetGain);
+        reverbDryGain.connect(actx.destination);
+        reverbWetGain.connect(actx.destination);
+
+        // Instruments
+        const instruments = [
+            "8 Choir", "Bassoon", "Cello", "Combined Choir", "GC3 Brass",
+            "M300A", "M300B", "Mixed Brass B", "Mixed Brass B 2",
+            "MkII Church Organ", "MkII Combined Brass", "MkII Flute",
+            "MkII Violins", "Orchestra", "String Section", "Tenor & Alto Sax",
+            "Tenor Sax", "Trombone", "Trombone & Trumpet", "Trumpet", "Woodwind 2"
+        ];
+
+        let state = {
+            idxA: 11, idxB: 9, mix: 0.5, pitch: 1.0, tone: 1.0, vol: 0.8, reverb: 0.0, octave: 3
+        };
+
+        let activeNotes = {};
+        let sampleBuffers = {};
+        let isLoading = false;
+
+        // Note Helper
+        function noteNameToMidi(name) {
+            const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+            const regex = /([A-G]#?)(\d)/;
+            const match = name.match(regex);
+            if (!match) return -1;
+            const noteStr = match[1];
+            const octave = parseInt(match[2]);
+            const noteIdx = notes.indexOf(noteStr);
+            return (octave + 1) * 12 + noteIdx;
+        }
+
+        const fileList = [
+            "A#2.wav", "A#3.wav", "A#4.wav", "A2.wav", "A3.wav", "A4.wav",
+            "B2.wav", "B3.wav", "B4.wav", "C#3.wav", "C#4.wav", "C#5.wav",
+            "C3.wav", "C4.wav", "C5.wav", "D#3.wav", "D#4.wav", "D#5.wav",
+            "D3.wav", "D4.wav", "D5.wav", "E3.wav", "E4.wav", "E5.wav",
+            "F#3.wav", "F#4.wav", "F3.wav", "F4.wav", "F5.wav",
+            "G#2.wav", "G#3.wav", "G#4.wav", "G2.wav", "G3.wav", "G4.wav"
+        ];
+
+        async function loadInstrument(instName) {
+            if (sampleBuffers[instName]) return;
+            isLoading = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').innerText = `Loading ${instName}...`;
+            sampleBuffers[instName] = {};
+
+            const promises = fileList.map(async (file) => {
+                const noteName = file.replace(".wav", "");
+                const midiNote = noteNameToMidi(noteName);
+                if (midiNote === -1) return;
+                try {
+                    const safeFile = file.replace("#", "%23");
+                    const response = await fetch(`Samples/${instName}/${safeFile}`);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const arrayBuffer = await response.arrayBuffer();
+                    const audioBuffer = await actx.decodeAudioData(arrayBuffer);
+                    sampleBuffers[instName][midiNote] = audioBuffer;
+                } catch (e) { console.warn(`Missing: ${instName}/${file}`); }
+            });
+            await Promise.all(promises);
+            isLoading = false;
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function playNote(midiNote) {
+            if (actx.state === 'suspended') actx.resume();
+            const playbackRate = state.pitch;
+
+            const playVoice = (instIdx, mixLevel) => {
+                const inst = instruments[instIdx];
+                const buffer = sampleBuffers[inst] ? sampleBuffers[inst][midiNote] : null;
+                if (!buffer) return null;
+                const source = actx.createBufferSource();
+                source.buffer = buffer;
+                source.playbackRate.value = playbackRate;
+                source.loop = true;
+                const gain = actx.createGain();
+                source.connect(gain);
+                gain.connect(masterGain);
+                source.start();
+                const now = actx.currentTime;
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(mixLevel, now + 0.05);
+                return { source, gain };
+            };
+
+            const vA = playVoice(state.idxA, (1.0 - state.mix) * 0.5);
+            const vB = playVoice(state.idxB, state.mix * 0.5);
+            activeNotes[midiNote] = {
+                sourceA: vA ? vA.source : null, gainA: vA ? vA.gain : null,
+                sourceB: vB ? vB.source : null, gainB: vB ? vB.gain : null
+            };
+        }
+
+        function stopNote(midiNote) {
+            const voice = activeNotes[midiNote];
+            if (voice) {
+                const now = actx.currentTime;
+                const releaseTime = 0.1;
+                const stopVoice = (vSource, vGain) => {
+                    if (vSource) {
+                        vGain.gain.cancelScheduledValues(now);
+                        vGain.gain.setValueAtTime(vGain.gain.value, now);
+                        vGain.gain.linearRampToValueAtTime(0, now + releaseTime);
+                        vSource.stop(now + releaseTime + 0.05);
+                    }
+                };
+                stopVoice(voice.sourceA, voice.gainA);
+                stopVoice(voice.sourceB, voice.gainB);
+                delete activeNotes[midiNote];
+            }
+        }
+
+        // --- UI Logic ---
+        const ctxA = document.getElementById('oledCanvasA').getContext('2d');
+        const ctxB = document.getElementById('oledCanvasB').getContext('2d');
+
+        function updateParams() {
+            state.mix = parseInt(document.getElementById('mixKnob').value) / 100;
+            const pVal = parseInt(document.getElementById('pitchKnob').value);
+            state.pitch = Math.pow(2, (pVal - 50) / 33.3);
+            const tVal = parseInt(document.getElementById('toneKnob').value) / 100;
+            const cutoff = 200 * Math.pow(12000 / 200, tVal);
+            toneFilter.frequency.setTargetAtTime(cutoff, actx.currentTime, 0.1);
+            const rVal = parseInt(document.getElementById('reverbKnob').value) / 100;
+            state.reverb = rVal;
+            reverbDryGain.gain.setTargetAtTime(1.0 - rVal * 0.5, actx.currentTime, 0.1);
+            reverbWetGain.gain.setTargetAtTime(rVal, actx.currentTime, 0.1);
+            drawOLEDs();
+        }
+
+        function rotateEncoder(side, dir) {
+            if (side === 'A') {
+                state.idxA += dir;
+                if (state.idxA < 0) state.idxA = instruments.length - 1;
+                if (state.idxA >= instruments.length) state.idxA = 0;
+                loadInstrument(instruments[state.idxA]);
+            } else {
+                state.idxB += dir;
+                if (state.idxB < 0) state.idxB = instruments.length - 1;
+                if (state.idxB >= instruments.length) state.idxB = 0;
+                loadInstrument(instruments[state.idxB]);
+            }
+            drawOLEDs();
+        }
+
+        function changeOctave(dir) {
+            state.octave = Math.max(1, Math.min(6, state.octave + dir));
+            document.getElementById('octaveDisplay').innerText = `C${state.octave}`;
+        }
+
+        // Draw OLEDs (Same as Desktop)
+        function drawText(ctx, text, x, y, size) {
+            ctx.font = size === 'small' ? '8px monospace' : '10px monospace';
+            ctx.fillStyle = '#5cf';
+            ctx.fillText(text, x, y + 8);
+        }
+        function drawRect(ctx, x, y, w, h, fill) {
+            ctx.strokeStyle = '#5cf';
+            ctx.fillStyle = '#5cf';
+            if (fill) ctx.fillRect(x, y, w, h); else ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+        }
+        function drawOLEDs() {
+            [
+                { ctx: ctxA, idx: state.idxA, mix: 1.0 - state.mix, title: "Sound A" },
+                { ctx: ctxB, idx: state.idxB, mix: state.mix, title: "Sound B" }
+            ].forEach(d => {
+                d.ctx.fillStyle = '#000'; d.ctx.fillRect(0, 0, 128, 64);
+                const inst = instruments[d.idx];
+                const mixPct = Math.round(d.mix * 100);
+                const titleW = 7 * 7;
+                drawText(d.ctx, d.title, ((128 - titleW) / 2) + 10, 5, 'small');
+                const instW = inst.length * 11;
+                drawText(d.ctx, inst, Math.max(0, (128 - instW) / 2) + 10, 25, 'large');
+                drawText(d.ctx, "Mix", 10, 52, 'small');
+                const barW = 50;
+                const fillW = (barW * mixPct) / 100;
+                drawRect(d.ctx, 35, 54, barW, 6, false);
+                if (fillW > 0) drawRect(d.ctx, 35, 54, fillW, 6, true);
+                drawText(d.ctx, `${mixPct}%`, 90, 52, 'small');
+            });
+        }
+
+        // --- Mobile Keyboard Generation ---
+        const keyboardContainer = document.getElementById('keyboardContainer');
+
+        // Generate 3 Octaves of keys for scrolling
+        // C2 to C5
+        const startOctave = 2;
+        const numOctaves = 3;
+
+        for (let o = 0; o < numOctaves; o++) {
+            const oct = startOctave + o;
+            // 7 white keys per octave: C D E F G A B
+            const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+            notes.forEach((note, i) => {
+                const whiteKey = document.createElement('div');
+                whiteKey.className = 'key white-key';
+                whiteKey.dataset.note = `${note}${oct}`;
+
+                // Calculate MIDI note for this specific key
+                // Note indices: C=0, D=2, E=4, F=5, G=7, A=9, B=11
+                const baseOffsets = [0, 2, 4, 5, 7, 9, 11];
+                const midi = (oct + 1) * 12 + baseOffsets[i];
+                whiteKey.dataset.midi = midi;
+
+                attachTouchEvents(whiteKey, midi);
+                keyboardContainer.appendChild(whiteKey);
+
+                // Add Black Key if not E or B
+                if (note !== 'E' && note !== 'B') {
+                    const blackKey = document.createElement('div');
+                    blackKey.className = 'key black-key';
+                    // Position relative to the white key we just added
+                    // We need to append it to the container, but position it absolutely relative to the flow?
+                    // Actually, standard HTML flow for piano keys is tricky.
+                    // Let's use a wrapper for each white key? No, black keys overlap.
+                    // Easier: Append black key AFTER white key, but use negative margin or absolute positioning.
+                    // My CSS uses float left for keys.
+                    // Let's try: Place black key inside the white key? No.
+                    // Let's place it after, and shift it back.
+
+                    // Actually, let's just use a simple list and position black keys absolutely within a relative container
+                    // But for scrolling, a flex row is easier.
+                    // Let's use the container as relative.
+                    // White keys flow. Black keys are absolute.
+                    // We need to calculate left position.
+                    // 60px per white key.
+                    // Black key is between white keys.
+                    // C# is between C and D.
+                    // 1st black key (C#) is at 60px - 20px = 40px?
+
+                    // Let's do this:
+                    // We have a container. We append white keys.
+                    // We calculate where black keys go.
+
+                    const blackNoteMap = { 'C': 'C#', 'D': 'D#', 'F': 'F#', 'G': 'G#', 'A': 'A#' };
+                    const blackNote = blackNoteMap[note];
+                    const blackMidi = midi + 1;
+
+                    blackKey.dataset.note = `${blackNote}${oct}`;
+                    blackKey.dataset.midi = blackMidi;
+
+                    // Calculate position:
+                    // i is the index of white key in this octave (0..6)
+                    // Global index of white key = (o * 7) + i
+                    const whiteIndex = (o * 7) + i;
+                    const leftPos = (whiteIndex + 1) * 60 - 20; // Right edge of current white key - half black width
+
+                    blackKey.style.left = `${leftPos}px`;
+
+                    attachTouchEvents(blackKey, blackMidi);
+                    // We need to append to the main container, which must be relative
+                    keyboardContainer.appendChild(blackKey);
+                }
+            });
+        }
+
+        // Set container width to fit all keys
+        // 3 octaves * 7 white keys * 60px
+        keyboardContainer.style.minWidth = `${numOctaves * 7 * 60}px`;
+
+        function attachTouchEvents(el, midiNote) {
+            const start = (e) => {
+                e.preventDefault();
+                el.classList.add('active');
+                playNote(midiNote);
+            };
+            const end = (e) => {
+                e.preventDefault();
+                el.classList.remove('active');
+                stopNote(midiNote);
+            };
+
+            el.addEventListener('mousedown', start);
+            el.addEventListener('mouseup', end);
+            el.addEventListener('mouseleave', end);
+
+            el.addEventListener('touchstart', start, { passive: false });
+            el.addEventListener('touchend', end, { passive: false });
+            el.addEventListener('touchcancel', end, { passive: false });
+        }
+
+        // Init
+        (async () => {
+            const startA = instruments[state.idxA];
+            const startB = instruments[state.idxB];
+            await Promise.all([loadInstrument(startA), loadInstrument(startB)]);
+            updateParams();
+
+            // Start Overlay
+            const overlay = document.getElementById('start-overlay');
+            const btn = document.getElementById('start-btn');
+            const startAudio = async () => {
+                if (actx.state === 'suspended') await actx.resume();
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
+            };
+            btn.addEventListener('click', startAudio);
+            btn.addEventListener('touchstart', startAudio);
+        })();
+
+    </script>
+</body>
+
+</html>
